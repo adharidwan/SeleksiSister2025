@@ -88,15 +88,15 @@ private:
     bool julia_mode;
     std::complex<double> julia_c;
     
-    // UI state - separate tracking for left and right mouse buttons
+    // UI state - left click for panning
     bool left_dragging;
-    bool right_dragging;
-    sf::Vector2i left_drag_start;
-    sf::Vector2i right_drag_start;
+    sf::Vector2i drag_start;
+    sf::Vector2i current_mouse_pos;
     
     // GUI elements
     std::vector<Button> buttons;
     sf::Text info_text;
+    sf::Text cursor_text;
     
     // Performance optimization
     sf::Clock julia_update_clock;
@@ -109,7 +109,7 @@ private:
 
 public:
     MandelbrotViewer(int fw, int fh) : fractal_width(fw), fractal_height(fh), max_iterations(100),
-                                      julia_mode(false), left_dragging(false), right_dragging(false), is_generating(false) {
+                                      julia_mode(false), left_dragging(false), is_generating(false) {
         // Detect number of CPU cores
         num_threads = std::max(1u, std::thread::hardware_concurrency());
         std::cout << "Using " << num_threads << " threads for fractal generation" << std::endl;
@@ -190,6 +190,13 @@ public:
         info_text.setCharacterSize(12);
         info_text.setFillColor(sf::Color::White);
         info_text.setPosition(start_x, start_y + 10*spacing);
+        
+        // Cursor coordinates text
+        cursor_text.setFont(font);
+        cursor_text.setCharacterSize(11);
+        cursor_text.setFillColor(sf::Color(200, 200, 200));
+        cursor_text.setPosition(start_x, window_height - 60);
+        
         updateInfoText();
     }
     
@@ -204,14 +211,32 @@ public:
                << julia_c.real() << " + " << julia_c.imag() << "i\n";
         }
         ss << "\nControls:\n";
-        ss << "- Left click fractal to zoom\n";
-        ss << "- Right click + drag to pan\n";
-        ss << "- Mouse wheel to zoom\n";
+        ss << "- Left click + drag to pan\n";
+        ss << "- Mouse wheel to zoom\n  at cursor position\n";
         if (julia_mode) {
             ss << "- Move mouse over\n  fractal to change C";
         }
         
         info_text.setString(ss.str());
+    }
+    
+    void updateCursorText() {
+        if (current_mouse_pos.x < fractal_width && current_mouse_pos.y >= 0 && 
+            current_mouse_pos.y < fractal_height) {
+            // Convert screen coordinates to complex plane coordinates
+            double real = min_real + (max_real - min_real) * current_mouse_pos.x / (fractal_width - 1);
+            double imag = min_imag + (max_imag - min_imag) * current_mouse_pos.y / (fractal_height - 1);
+            
+            std::stringstream ss;
+            ss << "Cursor Position:\n";
+            ss << "Screen: (" << current_mouse_pos.x << ", " << current_mouse_pos.y << ")\n";
+            ss << "Complex: " << std::fixed << std::setprecision(6) 
+               << real << " + " << imag << "i";
+            
+            cursor_text.setString(ss.str());
+        } else {
+            cursor_text.setString("Cursor Position:\n(Outside fractal area)");
+        }
     }
     
     int mandelbrotIteration(std::complex<double> c) {
@@ -497,7 +522,7 @@ public:
                     if (event.mouseButton.button == sf::Mouse::Left) {
                         sf::Vector2i mousePos(event.mouseButton.x, event.mouseButton.y);
                         
-                        // Check button clicks
+                        // Check button clicks first
                         bool button_clicked = false;
                         for (size_t i = 0; i < buttons.size(); i++) {
                             if (buttons[i].isClicked(mousePos)) {
@@ -511,17 +536,10 @@ public:
                             }
                         }
                         
-                        // If not clicking a button and clicking on fractal area
+                        // If not clicking a button and clicking on fractal area, start panning
                         if (!button_clicked && event.mouseButton.x < fractal_width) {
                             left_dragging = true;
-                            left_drag_start = mousePos;
-                        }
-                    }
-                    else if (event.mouseButton.button == sf::Mouse::Right) {
-                        // Right click for panning
-                        if (event.mouseButton.x < fractal_width) {
-                            right_dragging = true;
-                            right_drag_start = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
+                            drag_start = mousePos;
                         }
                     }
                     break;
@@ -533,30 +551,16 @@ public:
                             button.setPressed(false);
                         }
                         
-                        if (left_dragging) {
-                            left_dragging = false;
-                            
-                            sf::Vector2i drag_end(event.mouseButton.x, event.mouseButton.y);
-                            sf::Vector2i delta = drag_end - left_drag_start;
-                            
-                            // If it's a small movement on fractal area, treat as zoom
-                            if (std::abs(delta.x) < 5 && std::abs(delta.y) < 5 && 
-                                event.mouseButton.x < fractal_width) {
-                                zoom(event.mouseButton.x, event.mouseButton.y, 0.5);
-                                generateFractal();
-                                updateTexture();
-                                updateInfoText();
-                            }
-                        }
-                    }
-                    else if (event.mouseButton.button == sf::Mouse::Right) {
-                        right_dragging = false;
+                        left_dragging = false;
                     }
                     break;
                     
                 case sf::Event::MouseMoved:
+                    current_mouse_pos = sf::Vector2i(event.mouseMove.x, event.mouseMove.y);
+                    updateCursorText();
+                    
                     if (julia_mode && event.mouseMove.x < fractal_width && 
-                        !left_dragging && !right_dragging &&
+                        !left_dragging &&
                         julia_update_clock.getElapsedTime().asSeconds() > julia_update_interval) {
                         // Update Julia constant based on mouse position (with throttling)
                         double real = (double)event.mouseMove.x / fractal_width * 4.0 - 2.0;
@@ -567,13 +571,13 @@ public:
                         updateTexture();
                         updateInfoText();
                         julia_update_clock.restart();
-                    } else if (right_dragging && event.mouseMove.x < fractal_width) {
-                        // Pan the view with right click + drag
+                    } else if (left_dragging && event.mouseMove.x < fractal_width) {
+                        // Pan the view with left click + drag
                         sf::Vector2i current_pos(event.mouseMove.x, event.mouseMove.y);
-                        sf::Vector2i delta = current_pos - right_drag_start;
+                        sf::Vector2i delta = current_pos - drag_start;
                         
                         pan(delta.x, delta.y);
-                        right_drag_start = current_pos;
+                        drag_start = current_pos;
                         
                         generateFractal();
                         updateTexture();
@@ -584,10 +588,10 @@ public:
                 case sf::Event::MouseWheelScrolled:
                     if (event.mouseWheelScroll.x < fractal_width) {
                         if (event.mouseWheelScroll.delta > 0) {
-                            // Zoom in
+                            // Zoom in at cursor position
                             zoom(event.mouseWheelScroll.x, event.mouseWheelScroll.y, 0.8);
                         } else {
-                            // Zoom out
+                            // Zoom out at cursor position
                             zoom(event.mouseWheelScroll.x, event.mouseWheelScroll.y, 1.25);
                         }
                         generateFractal();
@@ -603,6 +607,7 @@ public:
         std::cout << "\n=== Interactive Mandelbrot/Julia Set Viewer ===" << std::endl;
         std::cout << "GUI Controls on the right panel" << std::endl;
         std::cout << "Current mode: " << (julia_mode ? "Julia" : "Mandelbrot") << std::endl;
+        std::cout << "Controls: Left click + drag to pan, Mouse wheel to zoom at cursor" << std::endl;
         
         while (window.isOpen()) {
             handleEvents();
@@ -627,6 +632,9 @@ public:
             
             // Draw info text
             window.draw(info_text);
+            
+            // Draw cursor coordinates
+            window.draw(cursor_text);
             
             window.display();
         }
