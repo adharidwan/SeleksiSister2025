@@ -130,7 +130,7 @@ unsigned long long mod_reduce(unsigned long long dividend, unsigned long long di
     temp = temp >> 1;
     
     mod_loop:
-    if (IS_EQ(shift, 0) && IS_EQ(temp, divisor)) {
+    if (IS_EQ(shift, 0) & IS_EQ(temp, divisor)) {
         if (GE(dividend, divisor)) {
             dividend = bit_sub(dividend, divisor);
         }
