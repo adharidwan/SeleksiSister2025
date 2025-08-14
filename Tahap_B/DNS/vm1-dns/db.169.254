@@ -1,0 +1,11 @@
+$TTL    604800
+@       IN      SOA     ns1.deeznutts.local. admin.deeznutts.local. (
+                         2024010101     ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@            IN      NS      ns1.deeznutts.local
+252.123      IN      PTR     ns1.deeznutts.local.
+224.216      IN      PTR     web.deeznutts.local.

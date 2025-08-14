@@ -1,0 +1,9 @@
+zone "deeznutts.local" {
+    type master;
+    file "/etc/bind/db.deeznutts.local";
+};
+
+zone "254.169.in-addr.arpa" {
+    type master;
+    file "/etc/bind/db.169.254";
+};

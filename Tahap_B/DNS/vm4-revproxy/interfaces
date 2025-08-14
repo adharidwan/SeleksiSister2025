@@ -1,0 +1,3 @@
+iface enp0s3 inet static
+    address 169.254.216.224
+    netmask 255.255.0.0

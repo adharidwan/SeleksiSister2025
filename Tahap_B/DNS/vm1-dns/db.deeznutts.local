@@ -1,0 +1,11 @@
+$TTL    604800
+@       IN      SOA     ns1.deeznutts.local. admin.deeznutts.local. (
+                     2024010101         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ns1.deeznutts.local.
+ns1     IN      A       169.254.123.252
+www     IN      A       169.254.216.224  ; Point ke reverse proxy (VM4)
