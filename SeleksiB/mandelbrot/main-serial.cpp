@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cmath>
 
-// Simple BMP header structures
+
 #pragma pack(push, 1)
 struct BMPFileHeader {
     uint16_t file_type{0x4D42};
@@ -40,7 +40,7 @@ private:
 public:
     MandelbrotGenerator(int w, int h, int max_iter = 1000) 
         : width(w), height(h), max_iterations(max_iter) {
-        // Default Mandelbrot set bounds
+        
         min_real = -2.5;
         max_real = 1.0;
         min_imag = -1.25;
@@ -73,7 +73,7 @@ public:
         
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                // Map pixel coordinates to complex plane
+                
                 double real = min_real + (max_real - min_real) * x / (width - 1);
                 double imag = min_imag + (max_imag - min_imag) * y / (height - 1);
                 
@@ -95,7 +95,7 @@ public:
             return;
         }
         
-        // Calculate padding for 4-byte alignment
+        
         int padding = (4 - (width * 3) % 4) % 4;
         int row_size = width * 3 + padding;
         
@@ -113,25 +113,25 @@ public:
         file.write(reinterpret_cast<char*>(&file_header), sizeof(file_header));
         file.write(reinterpret_cast<char*>(&info_header), sizeof(info_header));
         
-        // Color mapping
+        
         std::vector<uint8_t> row(row_size, 0);
         
-        for (int y = height - 1; y >= 0; y--) { // BMP is bottom-up
+        for (int y = height - 1; y >= 0; y--) { 
             for (int x = 0; x < width; x++) {
                 int iter = iterations[y][x];
                 uint8_t color;
                 
                 if (iter == max_iterations) {
-                    color = 0; // Black for points in the set
+                    color = 0; 
                 } else {
-                    // Smooth coloring
+                    
                     color = static_cast<uint8_t>(255 * iter / max_iterations);
                 }
                 
-                // BGR format
-                row[x * 3] = color;     // Blue
-                row[x * 3 + 1] = color; // Green
-                row[x * 3 + 2] = color; // Red
+                
+                row[x * 3] = color;     
+                row[x * 3 + 1] = color; 
+                row[x * 3 + 2] = color; 
             }
             file.write(reinterpret_cast<char*>(row.data()), row_size);
         }
