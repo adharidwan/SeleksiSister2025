@@ -1,0 +1,1 @@
+Pranala Video (Spek Utama + Bonus2) = https://youtu.be/3GC21gN1qrs
