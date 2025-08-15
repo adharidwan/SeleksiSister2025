@@ -104,3 +104,6 @@ g++ -o main-parallel main-parallel.cpp -lsfml-graphics -lsfml-window -lsfml-syst
 
 ## Gambar Fractal Julia (Classic)
 ![alt text](image-7.png)
+
+## Link Demo
+-> https://youtu.be/GleoHxAFg9E
