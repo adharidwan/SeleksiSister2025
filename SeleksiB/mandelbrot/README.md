@@ -6,6 +6,7 @@ Kumpulan generator fraktal himpunan Mandelbrot dan Julia dengan implementasi ser
 
 - `main-serial.cpp` - Implementasi serial yang menghasilkan gambar himpunan Mandelbrot dan menyimpannya sebagai file BMP
 - `main-parallel.cpp` - Implementasi paralel interaktif dengan GUI yang menampilkan himpunan Mandelbrot dan Julia
+- `main-cuda.cu` - Implementasi paralel interaktif dengan GUI yang menampilkan himpunan Mandelbrot dan Julia dikembangkan dengan CUDA
 
 ## Penjelasan Implementasi
 
@@ -77,3 +78,29 @@ g++ -o main-parallel main-parallel.cpp -lsfml-graphics -lsfml-window -lsfml-syst
 ./main-cuda
 ```
 
+
+## BenchMark
+
+### Mandelbrot 100 Iteration
+![alt text](image-1.png)
+
+### Mandelbrot 500 Iteration
+![alt text](image-2.png)
+
+### Mandelbrot 1000 Iteration
+![alt text](image.png)
+
+### Julia 100 Iteration
+![alt text](image-3.png)
+
+### Julia 500 Iteration
+![alt text](image-4.png)
+
+### Julia 1000 Iteration
+![alt text](image-5.png)
+
+## Gambar Fractal Mendelbrot
+![alt text](image-6.png)
+
+## Gambar Fractal Julia (Classic)
+![alt text](image-7.png)
