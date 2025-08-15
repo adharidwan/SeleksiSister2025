@@ -110,10 +110,9 @@ app.post('/challenge/api/logout', (req, res) => {
     res.json({ success: true, message: 'Logged out successfully' });
 });
 
-// FIXED: Sanitize profile updates to prevent prototype pollution
 app.post('/challenge/api/profile', authenticate, async (req, res) => {
     try {
-        // Deep sanitization function to prevent prototype pollution
+        //  sanitization 
         const sanitizeObject = (obj) => {
             if (obj === null || typeof obj !== 'object') {
                 return obj;
@@ -121,12 +120,10 @@ app.post('/challenge/api/profile', authenticate, async (req, res) => {
             
             const sanitized = {};
             for (const [key, value] of Object.entries(obj)) {
-                // Block all dangerous prototype pollution keys and variations
                 if (['__proto__', 'constructor', 'prototype', '__defineGetter__', '__defineSetter__', '__lookupGetter__', '__lookupSetter__'].includes(key)) {
                     continue;
                 }
                 
-                // Recursively sanitize nested objects
                 if (typeof value === 'object' && value !== null) {
                     sanitized[key] = sanitizeObject(value);
                 } else {
@@ -157,10 +154,8 @@ app.get('/challenge/api/user', authenticate, async (req, res) => {
     }
 });
 
-// FIXED: Sanitize settings updates to prevent prototype pollution
 app.post('/challenge/api/settings', authenticate, async (req, res) => {
     try {
-        // Deep sanitization function to prevent prototype pollution
         const sanitizeObject = (obj) => {
             if (obj === null || typeof obj !== 'object') {
                 return obj;
@@ -168,12 +163,10 @@ app.post('/challenge/api/settings', authenticate, async (req, res) => {
             
             const sanitized = {};
             for (const [key, value] of Object.entries(obj)) {
-                // Block all dangerous prototype pollution keys and variations
                 if (['__proto__', 'constructor', 'prototype', '__defineGetter__', '__defineSetter__', '__lookupGetter__', '__lookupSetter__'].includes(key)) {
                     continue;
                 }
                 
-                // Recursively sanitize nested objects
                 if (typeof value === 'object' && value !== null) {
                     sanitized[key] = sanitizeObject(value);
                 } else {
